@@ -3,233 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Jackpot - Stop on Win</title>
+    <title>Triple Neon Casino</title>
     <style>
+        /* Közös alapbeállítások */
         body {
             margin: 0;
-            padding: 0;
+            padding: 20px;
             min-height: 100vh;
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle at center, #2b0000 0%, #000000 100%);
+            gap: 40px;
+            background: radial-gradient(circle at center, #1a0000 0%, #000000 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #fff;
         }
 
         .slot-machine {
-            background: linear-gradient(145deg, #1a1a1a, #333333);
-            padding: 40px;
+            padding: 35px;
             border-radius: 30px;
-            box-shadow: 0 0 30px #ff0055, inset 0 0 20px #000;
-            border: 4px solid #ffd700;
             text-align: center;
-            width: 420px;
+            width: 380px;
+            position: relative;
         }
 
-        h1 {
-            margin-top: 0;
-            font-size: 2.5em;
-            color: #ffd700;
-            text-shadow: 0 0 10px #ff8c00, 0 0 20px #ff0055;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
+        h2 { margin-top: 0; font-size: 2em; text-transform: uppercase; letter-spacing: 2px; }
 
         .reels-container {
             display: flex;
             justify-content: space-between;
             background: #000;
-            padding: 20px;
+            padding: 15px;
             border-radius: 15px;
             border: 3px solid #555;
-            box-shadow: inset 0 0 15px #000;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .reel {
-            width: 90px;
-            height: 120px;
-            background: linear-gradient(180deg, #e6e6e6 0%, #ffffff 50%, #e6e6e6 100%);
+            width: 85px;
+            height: 110px;
             border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 60px;
-            box-shadow: inset 0px 10px 15px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.8);
-            border: 2px solid #333;
+            font-size: 55px;
+            box-shadow: inset 0px 5px 15px rgba(0,0,0,0.5);
             overflow: hidden;
         }
 
-        .spinning {
-            animation: shake 0.1s infinite;
-            filter: blur(2px);
-        }
+        .spinning { animation: shake 0.1s infinite; filter: blur(2px); }
+        @keyframes shake { 0% { transform: translateY(0); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0); } }
 
-        @keyframes shake {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0); }
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-
+        .controls { display: flex; flex-direction: column; gap: 12px; }
+        
         button {
-            background: linear-gradient(to bottom, #ffd700, #ff8c00);
             border: none;
-            padding: 15px 25px;
-            font-size: 1.2em;
+            padding: 15px;
+            font-size: 1.1em;
             font-weight: bold;
-            color: #2b0000;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-            transition: all 0.2s ease;
             text-transform: uppercase;
+            transition: all 0.2s ease;
         }
 
-        #autospin-btn {
-            background: linear-gradient(to bottom, #00d4ff, #0056b3);
-            color: white;
-            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+
+        .result-text { margin-top: 20px; font-size: 1.3em; font-weight: bold; min-height: 30px; }
+
+        /* --- 1. GÉP: AZ EREDETI (Neon Pink & Gold) --- */
+        .theme-original {
+            background: linear-gradient(145deg, #1a1a1a, #333333);
+            border: 4px solid #ffd700;
+            box-shadow: 0 0 30px #ff0055, inset 0 0 20px #000;
         }
+        .theme-original h2 { color: #ffd700; text-shadow: 0 0 10px #ff8c00, 0 0 20px #ff0055; }
+        .theme-original .reel { background: linear-gradient(180deg, #e6e6e6 0%, #ffffff 50%, #e6e6e6 100%); color: #000; }
+        .theme-original .spin-btn { background: linear-gradient(to bottom, #ffd700, #ff8c00); color: #2b0000; }
+        .theme-original .auto-btn { background: #444; color: #ffd700; border: 1px solid #ffd700; }
+        .theme-original .auto-btn.active { background: #ff0055; color: #fff; box-shadow: 0 0 15px #ff0055; }
 
-        #autospin-btn.active {
-            background: linear-gradient(to bottom, #ff3333, #8b0000);
-            box-shadow: 0 0 20px #ff3333;
+        /* --- 2. GÉP: CYBER MATRIX (Zöld) --- */
+        .theme-cyber {
+            background: #000;
+            border: 4px solid #00ff41;
+            box-shadow: 0 0 30px #00ff41;
         }
+        .theme-cyber h2 { color: #00ff41; text-shadow: 0 0 15px #00ff41; font-family: 'Courier New', monospace; }
+        .theme-cyber .reel { background: #051505; color: #00ff41; border: 1px solid #00ff41; }
+        .theme-cyber .spin-btn { background: #00ff41; color: #000; box-shadow: 0 0 10px #00ff41; }
+        .theme-cyber .auto-btn { background: #000; color: #00ff41; border: 1px solid #00ff41; }
+        .theme-cyber .auto-btn.active { background: #ff3333; color: #fff; border-color: #ff3333; }
 
-        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        button:disabled { background: #555 !important; color: #888 !important; cursor: not-allowed; box-shadow: none !important; }
-
-        #result {
-            margin-top: 25px;
-            font-size: 1.5em;
-            font-weight: bold;
-            min-height: 35px;
-            text-shadow: 0 0 5px #fff;
+        /* --- 3. GÉP: DEEP OCEAN (Kék & Ezüst) --- */
+        .theme-ocean {
+            background: linear-gradient(145deg, #001a33, #003366);
+            border: 4px solid #00d4ff;
+            box-shadow: 0 0 30px #00d4ff;
         }
+        .theme-ocean h2 { color: #fff; text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff; }
+        .theme-ocean .reel { background: linear-gradient(180deg, #333 0%, #fff 50%, #333 100%); color: #000; }
+        .theme-ocean .spin-btn { background: #00d4ff; color: #001a33; box-shadow: 0 0 10px #00d4ff; }
+        .theme-ocean .auto-btn { background: #001a33; color: #00d4ff; border: 1px solid #00d4ff; }
+        .theme-ocean .auto-btn.active { background: #00d4ff; color: #000; }
 
-        .win { color: #00ff00; text-shadow: 0 0 10px #00ff00; animation: pulse 1s infinite; }
-        .lose { color: #ff3333; }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
+        /* Nyeremény effekt */
+        .win { color: #00ff00 !important; text-shadow: 0 0 15px #00ff00 !important; animation: pulse 0.8s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <div class="slot-machine">
-        <h1>Neon Jackpot</h1>
+    <div class="slot-machine theme-original" id="m1">
+        <h2>Neon Jackpot</h2>
         <div class="reels-container">
-            <div class="reel" id="reel1">🍒</div>
-            <div class="reel" id="reel2">🍒</div>
-            <div class="reel" id="reel3">🍒</div>
+            <div class="reel">🍒</div>
+            <div class="reel">🍒</div>
+            <div class="reel">🍒</div>
         </div>
-        
         <div class="controls">
-            <button id="spin-btn">Pörgetés!</button>
-            <button id="autospin-btn">Autospin: KI</button>
+            <button class="spin-btn">Pörgetés!</button>
+            <button class="auto-btn">Autospin: KI</button>
         </div>
+        <div class="result-text">Sok szerencsét!</div>
+    </div>
 
-        <div id="result">Sok szerencsét!</div>
+    <div class="slot-machine theme-cyber" id="m2">
+        <h2>Cyber Slot</h2>
+        <div class="reels-container">
+            <div class="reel">💎</div>
+            <div class="reel">💎</div>
+            <div class="reel">💎</div>
+        </div>
+        <div class="controls">
+            <button class="spin-btn">Pörgetés!</button>
+            <button class="auto-btn">Autospin: KI</button>
+        </div>
+        <div class="result-text">System Ready.</div>
+    </div>
+
+    <div class="slot-machine theme-ocean" id="m3">
+        <h2>Ocean Wave</h2>
+        <div class="reels-container">
+            <div class="reel">🔔</div>
+            <div class="reel">🔔</div>
+            <div class="reel">🔔</div>
+        </div>
+        <div class="controls">
+            <button class="spin-btn">Pörgetés!</button>
+            <button class="auto-btn">Autospin: KI</button>
+        </div>
+        <div class="result-text">Deep Luck.</div>
     </div>
 
     <script>
         const symbols = ['🍒', '🍋', '🍉', '🍇', '🔔', '💎', '7️⃣'];
-        const reelElements = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
-        const spinBtn = document.getElementById('spin-btn');
-        const autospinBtn = document.getElementById('autospin-btn');
-        const resultDisplay = document.getElementById('result');
 
-        let isAutospinning = false;
-        let autospinTimeout = null;
+        class SlotMachine {
+            constructor(id) {
+                this.dom = document.getElementById(id);
+                this.reels = this.dom.querySelectorAll('.reel');
+                this.spinBtn = this.dom.querySelector('.spin-btn');
+                this.autoBtn = this.dom.querySelector('.auto-btn');
+                this.resDisplay = this.dom.querySelector('.result-text');
+                
+                this.isAutospinning = false;
+                this.isLocked = false;
+                this.timer = null;
 
-        function getRandomSymbol() {
-            return symbols[Math.floor(Math.random() * symbols.length)];
-        }
+                this.spinBtn.addEventListener('click', () => this.spin());
+                this.autoBtn.addEventListener('click', () => this.toggleAuto());
+            }
 
-        // Segédfüggvény az autospin leállításához
-        function stopAutospin() {
-            isAutospinning = false;
-            autospinBtn.textContent = "Autospin: KI";
-            autospinBtn.classList.remove('active');
-            clearTimeout(autospinTimeout);
-        }
+            getRandom() { return symbols[Math.floor(Math.random() * symbols.length)]; }
 
-        function spin() {
-            spinBtn.disabled = true;
-            resultDisplay.textContent = "Pörgetés...";
-            resultDisplay.className = "";
-
-            const spinIntervals = [];
-            const finalResults = [];
-
-            reelElements.forEach((reel, index) => {
-                reel.classList.add('spinning');
-                spinIntervals[index] = setInterval(() => {
-                    reel.textContent = getRandomSymbol();
-                }, 50);
-
-                setTimeout(() => {
-                    clearInterval(spinIntervals[index]);
-                    reel.classList.remove('spinning');
-                    const finalSymbol = getRandomSymbol();
-                    reel.textContent = finalSymbol;
-                    finalResults.push(finalSymbol);
-
-                    if (finalResults.length === 3) {
-                        finishSpin(finalResults);
-                    }
-                }, 1000 + (index * 500));
-            });
-        }
-
-        function finishSpin(results) {
-            const isWin = results[0] === results[1] && results[1] === results[2];
-            
-            if (isWin) {
-                resultDisplay.textContent = "🎉 JACKPOT! Nyertél! 🎉";
-                resultDisplay.className = "win";
-                // --- EZ A LÉNYEG: Ha nyertél, álljon meg az autospin ---
-                if (isAutospinning) {
-                    stopAutospin();
+            toggleAuto() {
+                this.isAutospinning = !this.isAutospinning;
+                if (this.isAutospinning) {
+                    this.autoBtn.textContent = "Autospin: BE";
+                    this.autoBtn.classList.add('active');
+                    if (!this.isLocked) this.spin();
+                } else {
+                    this.stopAutoLogic();
                 }
-            } else {
-                resultDisplay.textContent = "Sajnos nem nyert.";
-                resultDisplay.className = "lose";
             }
 
-            // Ha nem autospin (vagy épp most állítottuk le a nyeremény miatt), visszakapcsoljuk a manuális gombot
-            if (!isAutospinning) {
-                spinBtn.disabled = false;
-            } else {
-                // Ha még tart az autospin (vesztes kör után), jöhet a következő
-                autospinTimeout = setTimeout(() => {
-                    if (isAutospinning) spin();
-                }, 250);
+            stopAutoLogic() {
+                this.isAutospinning = false;
+                this.autoBtn.textContent = "Autospin: KI";
+                this.autoBtn.classList.remove('active');
+                clearTimeout(this.timer);
+            }
+
+            spin() {
+                if (this.isLocked) return;
+                
+                this.isLocked = true;
+                this.spinBtn.disabled = true;
+                this.resDisplay.textContent = "Pörgés...";
+                this.resDisplay.classList.remove('win');
+
+                let finishedCount = 0;
+                const currentResults = [];
+
+                this.reels.forEach((reel, i) => {
+                    reel.classList.add('spinning');
+                    
+                    // Látvány-pörgetés
+                    const interval = setInterval(() => {
+                        reel.textContent = this.getRandom();
+                    }, 50);
+
+                    // Megállás késleltetve
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        reel.classList.remove('spinning');
+                        const finalSym = this.getRandom();
+                        reel.textContent = finalSym;
+                        currentResults[i] = finalSym;
+                        finishedCount++;
+
+                        if (finishedCount === 3) {
+                            this.checkWin(currentResults);
+                        }
+                    }, 1000 + (i * 500));
+                });
+            }
+
+            checkWin(results) {
+                this.isLocked = false;
+                const win = results[0] === results[1] && results[1] === results[2];
+
+                if (win) {
+                    this.resDisplay.textContent = "🎉 JACKPOT! 🎉";
+                    this.resDisplay.classList.add('win');
+                    this.stopAutoLogic(); // NYEREMÉNYNÉL MEGÁLL!
+                    this.spinBtn.disabled = false;
+                } else {
+                    this.resDisplay.textContent = "Próbáld újra!";
+                    this.spinBtn.disabled = false;
+                    
+                    if (this.isAutospinning) {
+                        this.timer = setTimeout(() => {
+                            if (this.isAutospinning) this.spin();
+                        }, 1200);
+                    }
+                }
             }
         }
 
-        autospinBtn.addEventListener('click', () => {
-            if (!isAutospinning) {
-                isAutospinning = true;
-                autospinBtn.textContent = "Autospin: BE";
-                autospinBtn.classList.add('active');
-                if (!spinBtn.disabled) spin();
-            } else {
-                stopAutospin();
-            }
-        });
-
-        spinBtn.addEventListener('click', spin);
+        // Gépek indítása
+        const machine1 = new SlotMachine('m1');
+        const machine2 = new SlotMachine('m2');
+        const machine3 = new SlotMachine('m3');
     </script>
 </body>
 </html>
