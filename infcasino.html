@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Végtelen 2D Kaszinó - Pro Verzió</title>
+    <style>
+        :root {
+            --cell-width: 320px;
+            --cell-height: 450px;
+        }
+
+        body {
+            margin: 0;
+            background: #050505;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Fejléc frissítve a Vissza gombbal */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 15px;
+            text-align: center;
+            z-index: 1000;
+            border-bottom: 2px solid #444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        #viewport {
+            width: 100vw;
+            height: 100vh;
+            overflow: auto;
+            padding-top: 80px;
+            scroll-behavior: smooth;
+        }
+
+        #casino-grid {
+            display: grid;
+            grid-template-columns: repeat(var(--cols), var(--cell-width));
+            grid-template-rows: repeat(var(--rows), var(--cell-height));
+            gap: 30px;
+            padding: 40px;
+        }
+
+        .slot-machine {
+            width: var(--cell-width);
+            height: var(--cell-height);
+            border-radius: 15px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 15px;
+            box-sizing: border-box;
+            border: 3px solid #333;
+            background: #111;
+            transition: transform 0.2s;
+        }
+
+        .reels {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            background: #000;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .reel {
+            width: 60px;
+            height: 80px;
+            background: white;
+            color: black;
+            font-size: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        /* Gombok stílusa */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            text-decoration: none;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        #back-btn { background: #555; color: white; }
+        #back-btn:hover { background: #777; }
+        #spin-all { background: #ffcc00; color: black; }
+        #auto-all { background: #ff0055; color: white; }
+        .spin-btn { background: #0088ff; color: white; }
+
+        #coords-display {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 5px 12px;
+            font-family: monospace;
+            border-radius: 20px;
+            border: 1px solid #444;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="casino9.html" id="back-btn" class="btn">⬅ Vissza a főoldalra</a>
+        <button id="spin-all" class="btn">Összeset pörget</button>
+        <button id="auto-all" class="btn">Globális Auto: KI</button>
+    </div>
+
+    <div id="viewport">
+        <div id="casino-grid"></div>
+    </div>
+
+    <div id="coords-display">Terem koordináták: 0, 0</div>
+
+    <script>
+        const symbols = ['🍒', '🍋', '🍉', '💎', '7️⃣', '🔔', '🔥', '👑', '👾'];
+        const adjectives = ['Neon', 'Cyber', 'Mega', 'Ultra', 'Retro', 'Space', 'Dark', 'Arany', 'Vatikán', 'Zéró'];
+        const nouns = ['Slot', 'Király', 'Gép', 'Engine', 'Mag', 'Galaxis', 'Spin', 'Mátrix', 'Zóna'];
+
+        let rowCount = 5;
+        let colCount = 5;
+        const machines = [];
+        let globalAuto = false;
+
+        const grid = document.getElementById('casino-grid');
+        const viewport = document.getElementById('viewport');
+
+        function updateGridStyles() {
+            grid.style.setProperty('--cols', colCount);
+            grid.style.setProperty('--rows', rowCount);
+        }
+
+        class SlotMachine {
+            constructor(r, c) {
+                this.r = r;
+                this.c = c;
+                this.config = this.generateConfig();
+                this.isLocked = false;
+                this.render();
+            }
+
+            generateConfig() {
+                const hue = Math.floor(Math.random() * 360);
+                return {
+                    name: adjectives[Math.floor(Math.random() * adjectives.length)] + " " + nouns[Math.floor(Math.random() * nouns.length)],
+                    color: `hsl(${hue}, 80%, 50%)`,
+                };
+            }
+
+            render() {
+                const div = document.createElement('div');
+                div.className = 'slot-machine';
+                div.style.borderColor = this.config.color;
+                div.style.gridRow = this.r;
+                div.style.gridColumn = this.c;
+                
+                div.innerHTML = `
+                    <div style="font-size: 10px; opacity: 0.4;">ID: ${this.r}X${this.c}</div>
+                    <h3 style="color: ${this.config.color}; margin: 5px 0;">${this.config.name}</h3>
+                    <div class="reels">
+                        <div class="reel">?</div><div class="reel">?</div><div class="reel">?</div>
+                    </div>
+                    <button class="btn spin-btn">Pörgetés</button>
+                    <div class="res" style="height: 20px; font-size: 13px; margin-top: 5px;">Várakozás...</div>
+                `;
+
+                grid.appendChild(div);
+                this.dom = div;
+                this.reels = div.querySelectorAll('.reel');
+                this.resTxt = div.querySelector('.res');
+                div.querySelector('.spin-btn').onclick = () => this.spin();
+            }
+
+            spin() {
+                if(this.isLocked) return;
+                this.isLocked = true;
+                this.resTxt.textContent = "SORSOLÁS...";
+                
+                this.reels.forEach((reel, i) => {
+                    let count = 0;
+                    const interval = setInterval(() => {
+                        reel.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                        count++;
+                        if(count > 8 + i * 4) {
+                            clearInterval(interval);
+                            if(i === 2) {
+                                this.isLocked = false;
+                                this.resTxt.textContent = "KÉSZ!";
+                                // Ha globális auto van, pörög tovább automatikusan
+                                if(globalAuto) setTimeout(() => this.spin(), 1200);
+                            }
+                        }
+                    }, 60);
+                });
+            }
+        }
+
+        function spawnMachines(startRow, endRow, startCol, endCol) {
+            for(let r = startRow; r <= endRow; r++) {
+                for(let c = startCol; c <= endCol; c++) {
+                    if(!machines.find(m => m.r === r && m.c === c)) {
+                        const newMachine = new SlotMachine(r, c);
+                        machines.push(newMachine);
+                        
+                        // KRITIKUS RÉSZ: Ha az auto be van kapcsolva, az újonnan 
+                        // generált gép is azonnal elindul egy kis véletlen késleltetéssel
+                        if(globalAuto) {
+                            setTimeout(() => newMachine.spin(), 200 + Math.random() * 800);
+                        }
+                    }
+                }
+            }
+        }
+
+        viewport.onscroll = () => {
+            const scrollX = viewport.scrollLeft;
+            const scrollY = viewport.scrollTop;
+            const maxScrollX = grid.offsetWidth - viewport.offsetWidth;
+            const maxScrollY = grid.offsetHeight - viewport.offsetHeight;
+
+            document.getElementById('coords-display').textContent = `Pozíció: Részleg ${Math.floor(scrollX/300)}, Emelet ${Math.floor(scrollY/400)}`;
+
+            if (maxScrollY - scrollY < 500) {
+                rowCount += 3;
+                updateGridStyles();
+                spawnMachines(rowCount - 2, rowCount, 1, colCount);
+            }
+
+            if (maxScrollX - scrollX < 500) {
+                colCount += 3;
+                updateGridStyles();
+                spawnMachines(1, rowCount, colCount - 2, colCount);
+            }
+        };
+
+        // Indítás
+        updateGridStyles();
+        spawnMachines(1, rowCount, 1, colCount);
+
+        // Globális gombok kezelése
+        document.getElementById('spin-all').onclick = () => machines.forEach(m => m.spin());
+        
+        document.getElementById('auto-all').onclick = (e) => {
+            globalAuto = !globalAuto;
+            if(globalAuto) {
+                e.target.textContent = "Auto: BE";
+                e.target.style.background = "#00ff41";
+                e.target.style.color = "black";
+                // Minden meglévő gépet elindítunk
+                machines.forEach(m => m.spin());
+            } else {
+                e.target.textContent = "Auto: KI";
+                e.target.style.background = "#ff0055";
+                e.target.style.color = "white";
+            }
+        };
+
+    </script>
+</body>
+</html>
