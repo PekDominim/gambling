@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Félkarú Rabló - Autospin</title>
+    <title>Neon Jackpot - Stop on Win</title>
     <style>
-        /* Alapvető beállítások és háttér */
         body {
             margin: 0;
             padding: 0;
@@ -18,7 +17,6 @@
             color: #fff;
         }
 
-        /* A gép doboza */
         .slot-machine {
             background: linear-gradient(145deg, #1a1a1a, #333333);
             padding: 40px;
@@ -61,7 +59,6 @@
             box-shadow: inset 0px 10px 15px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.8);
             border: 2px solid #333;
             overflow: hidden;
-            position: relative;
         }
 
         .spinning {
@@ -95,7 +92,6 @@
             text-transform: uppercase;
         }
 
-        /* Autospin gomb külön stílusa */
         #autospin-btn {
             background: linear-gradient(to bottom, #00d4ff, #0056b3);
             color: white;
@@ -107,18 +103,8 @@
             box-shadow: 0 0 20px #ff3333;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.1);
-        }
-
-        button:disabled {
-            background: #555 !important;
-            color: #888 !important;
-            cursor: not-allowed;
-            box-shadow: none !important;
-            transform: none !important;
-        }
+        button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        button:disabled { background: #555 !important; color: #888 !important; cursor: not-allowed; box-shadow: none !important; }
 
         #result {
             margin-top: 25px;
@@ -158,11 +144,7 @@
 
     <script>
         const symbols = ['🍒', '🍋', '🍉', '🍇', '🔔', '💎', '7️⃣'];
-        const reelElements = [
-            document.getElementById('reel1'),
-            document.getElementById('reel2'),
-            document.getElementById('reel3')
-        ];
+        const reelElements = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
         const spinBtn = document.getElementById('spin-btn');
         const autospinBtn = document.getElementById('autospin-btn');
         const resultDisplay = document.getElementById('result');
@@ -172,6 +154,14 @@
 
         function getRandomSymbol() {
             return symbols[Math.floor(Math.random() * symbols.length)];
+        }
+
+        // Segédfüggvény az autospin leállításához
+        function stopAutospin() {
+            isAutospinning = false;
+            autospinBtn.textContent = "Autospin: KI";
+            autospinBtn.classList.remove('active');
+            clearTimeout(autospinTimeout);
         }
 
         function spin() {
@@ -184,7 +174,6 @@
 
             reelElements.forEach((reel, index) => {
                 reel.classList.add('spinning');
-                
                 spinIntervals[index] = setInterval(() => {
                     reel.textContent = getRandomSymbol();
                 }, 50);
@@ -209,39 +198,34 @@
             if (isWin) {
                 resultDisplay.textContent = "🎉 JACKPOT! Nyertél! 🎉";
                 resultDisplay.className = "win";
+                // --- EZ A LÉNYEG: Ha nyertél, álljon meg az autospin ---
+                if (isAutospinning) {
+                    stopAutospin();
+                }
             } else {
                 resultDisplay.textContent = "Sajnos nem nyert.";
                 resultDisplay.className = "lose";
             }
 
-            // Ha nem autospin, visszakapcsoljuk a sima gombot
+            // Ha nem autospin (vagy épp most állítottuk le a nyeremény miatt), visszakapcsoljuk a manuális gombot
             if (!isAutospinning) {
                 spinBtn.disabled = false;
             } else {
-                // Ha be van kapcsolva az autospin, várunk 1.5 másodpercet és újra pörgetünk
+                // Ha még tart az autospin (vesztes kör után), jöhet a következő
                 autospinTimeout = setTimeout(() => {
                     if (isAutospinning) spin();
-                }, 1500);
+                }, 250);
             }
         }
 
-        // Autospin gomb kezelése
         autospinBtn.addEventListener('click', () => {
-            isAutospinning = !isAutospinning;
-
-            if (isAutospinning) {
+            if (!isAutospinning) {
+                isAutospinning = true;
                 autospinBtn.textContent = "Autospin: BE";
                 autospinBtn.classList.add('active');
-                // Ha épp nincs pörgés folyamatban, elindítjuk
-                if (!spinBtn.disabled) {
-                    spin();
-                }
+                if (!spinBtn.disabled) spin();
             } else {
-                autospinBtn.textContent = "Autospin: KI";
-                autospinBtn.classList.remove('active');
-                clearTimeout(autospinTimeout);
-                // Ha megállítjuk az autospint, de a gép épp pörög, 
-                // a pörgés végén a finishSpin-ben a gomb magától visszakapcsol.
+                stopAutospin();
             }
         });
 
