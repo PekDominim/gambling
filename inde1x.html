@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triple Neon Casino</title>
+    <style>
+        /* Közös alapbeállítások */
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            background: radial-gradient(circle at center, #1a0000 0%, #000000 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            padding-top: 80px; /* Hely a navigációnak */
+        }
+
+        /* Navigációs sáv */
+        .nav-bar {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+        }
+        .nav-btn {
+            background: linear-gradient(90deg, #ff0055, #ff8c00);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 50px;
+            box-shadow: 0 0 20px #ff0055;
+            transition: all 0.3s;
+        }
+        .nav-btn:hover {
+            box-shadow: 0 0 40px #ff8c00;
+            transform: scale(1.05);
+        }
+
+        .slot-machine {
+            padding: 35px;
+            border-radius: 30px;
+            text-align: center;
+            width: 380px;
+            position: relative;
+        }
+
+        h2 { margin-top: 0; font-size: 2em; text-transform: uppercase; letter-spacing: 2px; }
+
+        .reels-container {
+            display: flex;
+            justify-content: space-between;
+            background: #000;
+            padding: 15px;
+            border-radius: 15px;
+            border: 3px solid #555;
+            margin-bottom: 25px;
+        }
+
+        .reel {
+            width: 85px;
+            height: 110px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 55px;
+            box-shadow: inset 0px 5px 15px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .spinning { animation: shake 0.1s infinite; filter: blur(2px); }
+        @keyframes shake { 0% { transform: translateY(0); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0); } }
+
+        .controls { display: flex; flex-direction: column; gap: 12px; }
+        
+        button {
+            border: none;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+
+        .result-text { margin-top: 20px; font-size: 1.3em; font-weight: bold; min-height: 30px; }
+
+        /* --- 1. GÉP --- */
+        .theme-original { background: linear-gradient(145deg, #1a1a1a, #333333); border: 4px solid #ffd700; box-shadow: 0 0 30px #ff0055, inset 0 0 20px #000; }
+        .theme-original h2 { color: #ffd700; text-shadow: 0 0 10px #ff8c00, 0 0 20px #ff0055; }
+        .theme-original .reel { background: linear-gradient(180deg, #e6e6e6 0%, #ffffff 50%, #e6e6e6 100%); color: #000; }
+        .theme-original .spin-btn { background: linear-gradient(to bottom, #ffd700, #ff8c00); color: #2b0000; }
+        .theme-original .auto-btn { background: #444; color: #ffd700; border: 1px solid #ffd700; }
+        .theme-original .auto-btn.active { background: #ff0055; color: #fff; box-shadow: 0 0 15px #ff0055; }
+
+        /* --- 2. GÉP --- */
+        .theme-cyber { background: #000; border: 4px solid #00ff41; box-shadow: 0 0 30px #00ff41; }
+        .theme-cyber h2 { color: #00ff41; text-shadow: 0 0 15px #00ff41; font-family: 'Courier New', monospace; }
+        .theme-cyber .reel { background: #051505; color: #00ff41; border: 1px solid #00ff41; }
+        .theme-cyber .spin-btn { background: #00ff41; color: #000; box-shadow: 0 0 10px #00ff41; }
+        .theme-cyber .auto-btn { background: #000; color: #00ff41; border: 1px solid #00ff41; }
+        .theme-cyber .auto-btn.active { background: #ff3333; color: #fff; border-color: #ff3333; }
+
+        /* --- 3. GÉP --- */
+        .theme-ocean { background: linear-gradient(145deg, #001a33, #003366); border: 4px solid #00d4ff; box-shadow: 0 0 30px #00d4ff; }
+        .theme-ocean h2 { color: #fff; text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff; }
+        .theme-ocean .reel { background: linear-gradient(180deg, #333 0%, #fff 50%, #333 100%); color: #000; }
+        .theme-ocean .spin-btn { background: #00d4ff; color: #001a33; box-shadow: 0 0 10px #00d4ff; }
+        .theme-ocean .auto-btn { background: #001a33; color: #00d4ff; border: 1px solid #00d4ff; }
+        .theme-ocean .auto-btn.active { background: #00d4ff; color: #000; }
+
+        .win { color: #00ff00 !important; text-shadow: 0 0 15px #00ff00 !important; animation: pulse 0.8s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="casino9.html" class="nav-btn">➡️ Tovább a 9 Gépes Mega Terembe!</a>
+    </div>
+
+    <div class="slot-machine theme-original" id="m1">
+        <h2>Neon Jackpot</h2>
+        <div class="reels-container">
+            <div class="reel">🍒</div><div class="reel">🍒</div><div class="reel">🍒</div>
+        </div>
+        <div class="controls">
+            <button class="spin-btn">Pörgetés!</button>
+            <button class="auto-btn">Autospin: KI</button>
+        </div>
+        <div class="result-text">Sok szerencsét!</div>
+    </div>
+
+    <div class="slot-machine theme-cyber" id="m2">
+        <h2>Cyber Slot</h2>
+        <div class="reels-container">
+            <div class="reel">💎</div><div class="reel">💎</div><div class="reel">💎</div>
+        </div>
+        <div class="controls">
+            <button class="spin-btn">Pörgetés!</button>
+            <button class="auto-btn">Autospin: KI</button>
+        </div>
+        <div class="result-text">System Ready.</div>
+    </div>
+
+    <div class="slot-machine theme-ocean" id="m3">
+        <h2>Ocean Wave</h2>
+        <div class="reels-container">
+            <div class="reel">🔔</div><div class="reel">🔔</div><div class="reel">🔔</div>
+        </div>
+        <div class="controls">
+            <button class="spin-btn">Pörgetés!</button>
+            <button class="auto-btn">Autospin: KI</button>
+        </div>
+        <div class="result-text">Deep Luck.</div>
+    </div>
+
+    <script>
+        const symbols = ['🍒', '🍋', '🍉', '🍇', '🔔', '💎', '7️⃣'];
+
+        class SlotMachine {
+            constructor(id) {
+                this.dom = document.getElementById(id);
+                this.reels = this.dom.querySelectorAll('.reel');
+                this.spinBtn = this.dom.querySelector('.spin-btn');
+                this.autoBtn = this.dom.querySelector('.auto-btn');
+                this.resDisplay = this.dom.querySelector('.result-text');
+                
+                this.isAutospinning = false;
+                this.isLocked = false;
+                this.timer = null;
+
+                this.spinBtn.addEventListener('click', () => this.spin());
+                this.autoBtn.addEventListener('click', () => this.toggleAuto());
+            }
+
+            getRandom() { return symbols[Math.floor(Math.random() * symbols.length)]; }
+
+            toggleAuto() {
+                this.isAutospinning = !this.isAutospinning;
+                if (this.isAutospinning) {
+                    this.autoBtn.textContent = "Autospin: BE";
+                    this.autoBtn.classList.add('active');
+                    if (!this.isLocked) this.spin();
+                } else {
+                    this.stopAutoLogic();
+                }
+            }
+
+            stopAutoLogic() {
+                this.isAutospinning = false;
+                this.autoBtn.textContent = "Autospin: KI";
+                this.autoBtn.classList.remove('active');
+                clearTimeout(this.timer);
+            }
+
+            spin() {
+                if (this.isLocked) return;
+                
+                this.isLocked = true;
+                this.spinBtn.disabled = true;
+                this.resDisplay.textContent = "Pörgés...";
+                this.resDisplay.classList.remove('win');
+
+                let finishedCount = 0;
+                const currentResults = [];
+
+                this.reels.forEach((reel, i) => {
+                    reel.classList.add('spinning');
+                    
+                    const interval = setInterval(() => {
+                        reel.textContent = this.getRandom();
+                    }, 50);
+
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        reel.classList.remove('spinning');
+                        const finalSym = this.getRandom();
+                        reel.textContent = finalSym;
+                        currentResults[i] = finalSym;
+                        finishedCount++;
+
+                        if (finishedCount === 3) {
+                            this.checkWin(currentResults);
+                        }
+                    }, 1000 + (i * 500));
+                });
+            }
+
+            checkWin(results) {
+                this.isLocked = false;
+                const win = results[0] === results[1] && results[1] === results[2];
+
+                if (win) {
+                    this.resDisplay.textContent = "🎉 JACKPOT! 🎉";
+                    this.resDisplay.classList.add('win');
+                    this.stopAutoLogic();
+                    this.spinBtn.disabled = false;
+                } else {
+                    this.resDisplay.textContent = "Próbáld újra!";
+                    this.spinBtn.disabled = false;
+                    
+                    if (this.isAutospinning) {
+                        this.timer = setTimeout(() => {
+                            if (this.isAutospinning) this.spin();
+                        }, 1200);
+                    }
+                }
+            }
+        }
+
+        const machine1 = new SlotMachine('m1');
+        const machine2 = new SlotMachine('m2');
+        const machine3 = new SlotMachine('m3');
+    </script>
+</body>
+</html>
